@@ -10,15 +10,6 @@ headers = {
 	'Content-Type': 'application/json'
 }
 
-class DecimalEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, decimal.Decimal):
-            if abs(o) % 1 > 0:
-                return float(o)
-            else:
-                return int(o)
-        return super(DecimalEncoder, self).default(o)
-
 def lambda_handler(event, context):
 	print(event)
 	
@@ -37,10 +28,3 @@ def lambda_handler(event, context):
 			"headers": headers,
 			"body": json.dumps({"error": "Ruta no soportada: {}".format(path_parameters)})
 	}
-
-
-event = {
-    "pathParameters": {}
-}
-
-lambda_handler(event, None)
