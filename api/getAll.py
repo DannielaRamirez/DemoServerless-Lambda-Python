@@ -19,7 +19,7 @@ def get_all():
 
 	else:
 		if "Items" not in response or not response["Items"]:
-			raise exceptions.NotFound("No existe ningún registros")
+			raise exceptions.NotFound("No existe ningún registro")
 
 		registros = response['Items']
 		for registro in registros:
