@@ -1,27 +1,12 @@
 import json
-import decimal
 import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from urllib import parse
+from ex import exceptions
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("DemoServerless")
-
-headers = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Methods': '*',
-	'Content-Type': 'application/json'
-}
-
-class DecimalEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, decimal.Decimal):
-            if abs(o) % 1 > 0:
-                return float(o)
-            else:
-                return int(o)
-        return super(DecimalEncoder, self).default(o)
 
 def search(query):
 	print(query)
@@ -43,19 +28,11 @@ def search(query):
 		print(response)
 
 	except ClientError as e:
-		return {
-			"statusCode": 500,
-			"headers": headers,
-			"body": json.dumps({"error": e.response['Error']['Message']})
-		}
+		raise exceptions.InternalServerError(e.response['Error']['Message'])
 
 	else:
 		if "Items" not in response or not response["Items"]:
-			return {
-				"statusCode": 404,
-				"headers": headers,
-				"body": json.dumps({"error": "No hubo resultados para la búsqueda: {}".format(query)})
-			}
+			raise exceptions.NotFound("No existe ningún registros")
 
 		registros = response['Items']
 		for registro in registros:
@@ -64,8 +41,4 @@ def search(query):
 			del registro["sk"]
 			del registro["busqueda"]
 
-		return {
-			"statusCode": 200,
-			"headers": headers,
-			"body": json.dumps(registros, cls=DecimalEncoder, ensure_ascii=False)
-		}
+		return registros
